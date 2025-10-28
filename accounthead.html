@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Font Awesome for Sidebar Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accounts Head - Wasooli AAB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f3f8ff;
+      font-family: "Poppins", sans-serif;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #2196f3;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      overflow-y: auto;
+    }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar ul li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+    }
+    .main-content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+    .btn-primary {
+      background-color: #2196f3;
+      border: none;
+      border-radius: 8px;
+    }
+    .btn-primary:hover { background-color: #1976d2; }
+    table th { background-color: #f1f5ff; }
+    .card { border-radius: 10px; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <h5 class="fw-semibold mb-4">Accounts Head Management</h5>
+
+    <!-- ACCOUNT HEAD SECTION -->
+    <div class="card p-3 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold">Account Heads</h6>
+        <button class="btn btn-primary btn-sm" onclick="openHeadModal()">+ Add Account Head</button>
+      </div>
+      <table class="table table-bordered align-middle" id="accountHeadTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Head Name</th>
+            <th>Type</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- ACCOUNT SUB HEAD SECTION -->
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold">Account Sub Heads</h6>
+        <button class="btn btn-primary btn-sm" onclick="openSubHeadModal()">+ Add Sub Head</button>
+      </div>
+      <table class="table table-bordered align-middle" id="subHeadTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Head</th>
+            <th>Sub Head Name</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD ACCOUNT HEAD -->
+  <div class="modal fade" id="headModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">Add Account Head</h6>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label fw-semibold">Account Head Name</label>
+          <input type="text" id="headName" class="form-control mb-3" placeholder="Enter Head Name" />
+          <label class="form-label fw-semibold">Account Type</label>
+          <select id="headType" class="form-select">
+            <option value="">Select Type</option>
+            <option value="Expense">Expense</option>
+            <option value="Revenue">Revenue</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" onclick="saveAccountHead()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD SUB HEAD -->
+  <div class="modal fade" id="subHeadModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">Add Sub Head</h6>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label fw-semibold">Select Account Head</label>
+          <select id="selectHead" class="form-select mb-3"></select>
+          <label class="form-label fw-semibold">Sub Head Name</label>
+          <input type="text" id="subHeadName" class="form-control" placeholder="Enter Sub Head Name" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" onclick="saveSubHead()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const accountHeads = [];
+    const subHeads = [];
+
+    // Open Head Modal
+    function openHeadModal() {
+      document.getElementById("headName").value = "";
+      document.getElementById("headType").value = "";
+      new bootstrap.Modal(document.getElementById("headModal")).show();
+    }
+
+    // Save Account Head
+    function saveAccountHead() {
+      const name = document.getElementById("headName").value.trim();
+      const type = document.getElementById("headType").value;
+      if (!name || !type) {
+        alert("⚠️ Please fill all fields.");
+        return;
+      }
+
+      accountHeads.push({ name, type });
+      updateHeadTable();
+      updateHeadDropdown();
+      bootstrap.Modal.getInstance(document.getElementById("headModal")).hide();
+    }
+
+    // Update Head Table
+    function updateHeadTable() {
+      const tbody = document.querySelector("#accountHeadTable tbody");
+      tbody.innerHTML = "";
+      accountHeads.forEach((h, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${h.name}</td>
+            <td>${h.type}</td>
+          </tr>`;
+      });
+    }
+
+    // Open Sub Head Modal
+    function openSubHeadModal() {
+      if (accountHeads.length === 0) {
+        alert("⚠️ Please add an Account Head first.");
+        return;
+      }
+      updateHeadDropdown();
+      document.getElementById("subHeadName").value = "";
+      new bootstrap.Modal(document.getElementById("subHeadModal")).show();
+    }
+
+    // Update dropdown of account heads
+    function updateHeadDropdown() {
+      const select = document.getElementById("selectHead");
+      select.innerHTML = "";
+      accountHeads.forEach((h, i) => {
+        select.innerHTML += `<option value="${h.name}">${h.name}</option>`;
+      });
+    }
+
+    // Save Sub Head
+    function saveSubHead() {
+      const head = document.getElementById("selectHead").value;
+      const subName = document.getElementById("subHeadName").value.trim();
+      if (!head || !subName) {
+        alert("⚠️ Please fill all fields.");
+        return;
+      }
+
+      subHeads.push({ head, subName });
+      updateSubHeadTable();
+      bootstrap.Modal.getInstance(document.getElementById("subHeadModal")).hide();
+    }
+
+    // Update Sub Head Table
+    function updateSubHeadTable() {
+      const tbody = document.querySelector("#subHeadTable tbody");
+      tbody.innerHTML = "";
+      subHeads.forEach((s, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${s.head}</td>
+            <td>${s.subName}</td>
+          </tr>`;
+      });
+    }
+  </script>
+
+  <script src="js/sidebar.js"></script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Font Awesome for Sidebar Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Area Allocation - Wasooli AAB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="js/sidebar.js"></script>
+  <style>
+    body {
+      background-color: #f3f8ff;
+      font-family: 'Poppins', sans-serif;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #2196f3;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      overflow-y: auto;
+    }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar ul li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+    }
+    .sub-menu li {
+      padding: 8px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+    .sub-menu li:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+    .master-menu.active > .sub-menu { display: block !important; }
+    .toggle-icon { transition: transform 0.3s ease; }
+    .master-menu.active .toggle-icon { transform: rotate(180deg); }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .btn-primary {
+      background-color: #2196f3;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background-color: #1976d2; }
+
+    select, .list-box {
+      width: 100%;
+      height: 250px;
+      border: 1px solid #d0e4ff;
+      border-radius: 8px;
+      background-color: #fff;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .list-item {
+      padding: 6px 10px;
+      margin: 4px 0;
+      border-radius: 6px;
+      background-color: #f7f9ff;
+      cursor: pointer;
+    }
+    .list-item:hover {
+      background-color: #e3f2fd;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+
+      <!-- MASTER MENU WITH SUBNAV -->
+     <div class="sidebar"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <h5 class="fw-semibold">Area Allocation</h5>
+    <p class="text-muted">Master > Area Allocation</p>
+
+    <div class="row mb-3 align-items-end">
+      <div class="col-auto">
+        <label class="form-label">Operators</label>
+        <select id="operatorSelect" class="form-select" style="height:60px;">
+          <option value="">Please Select Operator</option>
+          <option>Ali Raza</option>
+          <option>Hamza Khan</option>
+          <option>Bilal Ahmed</option>
+          <option>Asad Iqbal</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-danger me-2" onclick="resetAllocation()">Delete</button>
+        <button class="btn btn-primary" onclick="showAreas()">Show</button>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-5">
+        <div id="availableAreas" class="list-box"></div>
+      </div>
+      <div class="col-md-2 text-center d-flex flex-column justify-content-center align-items-center">
+        <button class="btn btn-primary mb-2" onclick="moveAllRight()">>></button>
+        <button class="btn btn-primary mb-2" onclick="moveSelectedRight()">></button>
+        <button class="btn btn-primary mb-2" onclick="moveSelectedLeft()"><</button>
+        <button class="btn btn-primary mb-2" onclick="moveAllLeft()"><<</button>
+      </div>
+      <div class="col-md-5">
+        <div id="assignedAreas" class="list-box"></div>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <button class="btn btn-primary px-5" onclick="saveAllocation()">Save</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Sidebar master menu toggle
+    document.querySelectorAll('.master-menu').forEach(menu => {
+      menu.addEventListener('click', () => menu.classList.toggle('active'));
+    });
+
+    const availableAreasBox = document.getElementById('availableAreas');
+    const assignedAreasBox = document.getElementById('assignedAreas');
+    const operatorSelect = document.getElementById('operatorSelect');
+
+    const dummyAreas = [
+      'North Nazimabad', 'Gulshan-e-Iqbal', 'DHA Phase 6', 'Johar Block 10',
+      'Clifton Block 4', 'Korangi', 'Malir', 'FB Area Block 14'
+    ];
+
+    let availableAreas = [...dummyAreas];
+    let assignedAreas = [];
+
+    function showAreas() {
+      if (!operatorSelect.value) return alert('Please select an operator first.');
+      availableAreas = [...dummyAreas];
+      assignedAreas = [];
+      renderLists();
+    }
+
+    function renderLists() {
+      availableAreasBox.innerHTML = '';
+      assignedAreasBox.innerHTML = '';
+
+      availableAreas.forEach(area => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = area;
+        div.ondblclick = () => moveToAssigned(area);
+        availableAreasBox.appendChild(div);
+      });
+
+      assignedAreas.forEach(area => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = area;
+        div.ondblclick = () => moveToAvailable(area);
+        assignedAreasBox.appendChild(div);
+      });
+    }
+
+    function moveToAssigned(area) {
+      availableAreas = availableAreas.filter(a => a !== area);
+      assignedAreas.push(area);
+      renderLists();
+    }
+
+    function moveToAvailable(area) {
+      assignedAreas = assignedAreas.filter(a => a !== area);
+      availableAreas.push(area);
+      renderLists();
+    }
+
+    function moveAllRight() {
+      assignedAreas.push(...availableAreas);
+      availableAreas = [];
+      renderLists();
+    }
+
+    function moveAllLeft() {
+      availableAreas.push(...assignedAreas);
+      assignedAreas = [];
+      renderLists();
+    }
+
+    function moveSelectedRight() {
+      if (availableAreas.length) {
+        assignedAreas.push(availableAreas[0]);
+        availableAreas.shift();
+        renderLists();
+      }
+    }
+
+    function moveSelectedLeft() {
+      if (assignedAreas.length) {
+        availableAreas.push(assignedAreas[0]);
+        assignedAreas.shift();
+        renderLists();
+      }
+    }
+
+    function saveAllocation() {
+      if (!operatorSelect.value) return alert('Please select an operator first.');
+      alert(`✅ Areas assigned to ${operatorSelect.value}:\n${assignedAreas.join(', ') || 'No areas assigned.'}`);
+    }
+
+    function resetAllocation() {
+      availableAreas = [...dummyAreas];
+      assignedAreas = [];
+      renderLists();
+    }
+
+    renderLists();
+  </script>
+</body>
+</html>

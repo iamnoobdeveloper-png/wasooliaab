@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Font Awesome for Sidebar Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Packages - Wasooli AAB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   <script src="js/sidebar.js"></script>
+  <style>
+    body {
+      background-color: #f3f8ff;
+      font-family: 'Poppins', sans-serif;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #2196f3;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      overflow-y: auto;
+    }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar ul li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+    }
+    .sub-menu li {
+      padding: 8px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+    .sub-menu li:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+    .master-menu.active > .sub-menu { display: block !important; }
+    .toggle-icon { transition: transform 0.3s ease; }
+    .master-menu.active .toggle-icon { transform: rotate(180deg); }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .btn-primary {
+      background-color: #2196f3;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background-color: #1976d2; }
+    table th { background-color: #f1f5ff; }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="fw-semibold">Packages</h5>
+        <p class="text-muted mb-0">Master > Packages</p>
+      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackageModal" onclick="resetForm()">+ Add Package</button>
+    </div>
+
+    <div class="card p-4">
+      <table class="table table-bordered align-middle" id="packageTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Package Name</th>
+            <th>Price (PKR)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT PACKAGE MODAL -->
+  <div class="modal fade" id="addPackageModal" tabindex="-1" aria-labelledby="addPackageLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title" id="addPackageLabel">Add / Edit Package</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="packageForm">
+            <input type="hidden" id="editIndex" />
+            <div class="mb-3">
+              <label class="form-label">Package Name</label>
+              <input type="text" class="form-control" id="packageName" placeholder="Enter package name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Price (PKR)</label>
+              <input type="number" class="form-control" id="packagePrice" placeholder="Enter package price" required>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary">Save Package</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sidebar Master menu toggle
+    document.querySelectorAll('.master-menu').forEach(menu => {
+      menu.addEventListener('click', () => menu.classList.toggle('active'));
+    });
+
+    const packageForm = document.getElementById('packageForm');
+    const tableBody = document.getElementById('tableBody');
+    const editIndexInput = document.getElementById('editIndex');
+    let packageList = [];
+
+    packageForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('packageName').value.trim();
+      const price = document.getElementById('packagePrice').value.trim();
+      const editIndex = editIndexInput.value;
+
+      if (name && price) {
+        if (editIndex === '') packageList.push({ name, price });
+        else packageList[editIndex] = { name, price };
+
+        updateTable();
+        packageForm.reset();
+        editIndexInput.value = '';
+        bootstrap.Modal.getInstance(document.getElementById('addPackageModal')).hide();
+      }
+    });
+
+    function resetForm() {
+      packageForm.reset();
+      editIndexInput.value = '';
+      document.getElementById('addPackageLabel').innerText = 'Add Package';
+    }
+
+    function updateTable() {
+      tableBody.innerHTML = '';
+      packageList.forEach((pkg, index) => {
+        tableBody.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${pkg.name}</td>
+            <td>${pkg.price}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-2 text-white" onclick="editPackage(${index})">Edit</button>
+              <button class="btn btn-sm btn-danger" onclick="deletePackage(${index})">Delete</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    function editPackage(index) {
+      const pkg = packageList[index];
+      document.getElementById('packageName').value = pkg.name;
+      document.getElementById('packagePrice').value = pkg.price;
+      document.getElementById('addPackageLabel').innerText = 'Edit Package';
+      editIndexInput.value = index;
+      new bootstrap.Modal(document.getElementById('addPackageModal')).show();
+    }
+
+    function deletePackage(index) {
+      if (confirm('Are you sure you want to delete this package?')) {
+        packageList.splice(index, 1);
+        updateTable();
+      }
+    }
+  </script>
+</body>
+</html>

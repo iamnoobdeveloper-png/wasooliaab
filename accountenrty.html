@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Font Awesome for Sidebar Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accounts Entry - Wasooli AAB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #f3f8ff;
+      font-family: "Poppins", sans-serif;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #2196f3;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      overflow-y: auto;
+    }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar ul li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+    }
+    .main-content { margin-left: 260px; padding: 20px; }
+    .btn-primary {
+      background-color: #2196f3;
+      border: none;
+      border-radius: 8px;
+    }
+    .btn-primary:hover { background-color: #1976d2; }
+    table th { background-color: #f1f5ff; }
+    .card { border-radius: 10px; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-semibold">Accounts Entry</h5>
+      <button class="btn btn-primary btn-sm" onclick="openEntryModal()">+ Add Entry</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card p-3">
+      <h6 class="fw-semibold mb-3">Account Transactions</h6>
+      <table class="table table-bordered align-middle" id="entryTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Head</th>
+            <th>Sub Head</th>
+            <th>Date</th>
+            <th>Amount (PKR)</th>
+            <th>Type</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT ENTRY -->
+  <div class="modal fade" id="entryModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title">Add Account Entry</h6>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label fw-semibold">Account Head</label>
+          <select id="entryHead" class="form-select mb-3" onchange="updateSubHeadOptions()"></select>
+
+          <label class="form-label fw-semibold">Sub Head</label>
+          <select id="entrySubHead" class="form-select mb-3"></select>
+
+          <label class="form-label fw-semibold">Date</label>
+          <input type="date" id="entryDate" class="form-control mb-3" />
+
+          <label class="form-label fw-semibold">Amount (PKR)</label>
+          <input type="number" id="entryAmount" class="form-control mb-3" placeholder="Enter amount" />
+
+          <label class="form-label fw-semibold">Transaction Type</label>
+          <select id="entryType" class="form-select">
+            <option value="">Select Type</option>
+            <option value="Cash">Cash</option>
+            <option value="Bank">Bank</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" onclick="saveEntry()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Example demo data (replace with dynamic values from previous page or backend)
+    const accountHeads = [
+      { name: "Marketing Expense", type: "Expense" },
+      { name: "Internet Revenue", type: "Revenue" }
+    ];
+    const subHeads = [
+      { head: "Marketing Expense", subName: "Facebook Ads" },
+      { head: "Marketing Expense", subName: "Printing" },
+      { head: "Internet Revenue", subName: "Client Subscription" },
+    ];
+
+    const entries = [];
+    let editingIndex = null;
+
+    // Populate Head dropdown
+    function openEntryModal() {
+      document.getElementById("entryHead").innerHTML = "";
+      accountHeads.forEach(h => {
+        document.getElementById("entryHead").innerHTML += `<option value="${h.name}">${h.name}</option>`;
+      });
+      updateSubHeadOptions();
+
+      document.getElementById("entryDate").value = new Date().toISOString().split("T")[0];
+      document.getElementById("entryAmount").value = "";
+      document.getElementById("entryType").value = "";
+      editingIndex = null;
+      new bootstrap.Modal(document.getElementById("entryModal")).show();
+    }
+
+    function updateSubHeadOptions() {
+      const head = document.getElementById("entryHead").value;
+      const subSelect = document.getElementById("entrySubHead");
+      subSelect.innerHTML = "";
+      subHeads.filter(s => s.head === head).forEach(s => {
+        subSelect.innerHTML += `<option value="${s.subName}">${s.subName}</option>`;
+      });
+    }
+
+    function saveEntry() {
+      const head = document.getElementById("entryHead").value;
+      const sub = document.getElementById("entrySubHead").value;
+      const date = document.getElementById("entryDate").value;
+      const amount = document.getElementById("entryAmount").value;
+      const type = document.getElementById("entryType").value;
+
+      if (!head || !sub || !date || !amount || !type) {
+        alert("⚠️ Please fill all fields before saving.");
+        return;
+      }
+
+      const entry = { head, sub, date, amount, type };
+
+      if (editingIndex !== null) {
+        entries[editingIndex] = entry;
+        editingIndex = null;
+      } else {
+        entries.push(entry);
+      }
+
+      updateTable();
+      bootstrap.Modal.getInstance(document.getElementById("entryModal")).hide();
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector("#entryTable tbody");
+      tbody.innerHTML = "";
+      entries.forEach((e, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${e.head}</td>
+            <td>${e.sub}</td>
+            <td>${e.date}</td>
+            <td>${e.amount}</td>
+            <td>${e.type}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary me-1" onclick="editEntry(${i})">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteEntry(${i})">Delete</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    function editEntry(index) {
+      const e = entries[index];
+      editingIndex = index;
+
+      document.getElementById("entryHead").value = e.head;
+      updateSubHeadOptions();
+      document.getElementById("entrySubHead").value = e.sub;
+      document.getElementById("entryDate").value = e.date;
+      document.getElementById("entryAmount").value = e.amount;
+      document.getElementById("entryType").value = e.type;
+
+      new bootstrap.Modal(document.getElementById("entryModal")).show();
+    }
+
+    function deleteEntry(index) {
+      if (confirm("Are you sure you want to delete this entry?")) {
+        entries.splice(index, 1);
+        updateTable();
+      }
+    }
+  </script>
+
+  <script src="js/sidebar.js"></script>
+</body>
+</html>

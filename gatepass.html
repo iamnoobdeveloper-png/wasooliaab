@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Font Awesome for Sidebar Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="js/gatepass.js"></script>
+<script src="js/sidebar.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gate Pass - Wasooli AAB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+ 
+  <style>
+    body {
+      background-color: #f3f8ff;
+      font-family: "Poppins", sans-serif;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #2196f3;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      overflow-y: auto;
+    }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar ul li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: rgba(255,255,255,0.2);
+      border-radius: 8px;
+    }
+    .main-content { margin-left: 260px; padding: 20px; }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .btn-primary {
+      background-color: #2196f3;
+      border: none;
+      border-radius: 8px;
+    }
+    .btn-primary:hover { background-color: #1976d2; }
+    table th { background-color: #f1f5ff; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="fw-semibold">Gate Pass</h5>
+        <p class="text-muted mb-0">Master > Gate Pass</p>
+      </div>
+      <button class="btn btn-primary" onclick="printGatePass()">🖨️ Print Gate Pass</button>
+    </div>
+
+    <!-- FILTERS -->
+   <div class="card p-3 mb-4">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label fw-semibold">Select Area</label>
+      <select id="areaSelect" class="form-select" onchange="setDummyBottleCount()">
+        <option value="">Select Area</option>
+        <option value="Gulshan">Gulshan</option>
+        <option value="Johar">Johar</option>
+        <option value="DHA">DHA</option>
+        <option value="Clifton">Clifton</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label fw-semibold">Bottle Count (Base)</label>
+      <input type="number" id="baseBottleCount" class="form-control" readonly placeholder="Auto count..." />
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label fw-semibold">Extra Bottles</label>
+      <input type="number" id="extraBottles" class="form-control" placeholder="Add extra bottles" />
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label fw-semibold">Assign Sales Person</label>
+      <select id="salesPerson" class="form-select">
+        <option value="">Select Sales Person</option>
+        <option>Ali Raza</option>
+        <option>Bilal Ahmed</option>
+        <option>Hamza Khan</option>
+      </select>
+    </div>
+
+  <div class="col-md-3">
+  <label class="form-label fw-semibold">Select Truck</label>
+  <select id="truckSelect" class="form-select">
+    <option value="">Select Truck</option>
+    <option value="Truck 01 - ISL 2345">Truck 01 - ISL 2345</option>
+    <option value="Truck 02 - KAR 7864">Truck 02 - KAR 7864</option>
+    <option value="Truck 03 - LHR 9921">Truck 03 - LHR 9921</option>
+    <option value="Truck 04 - KHI 5590">Truck 04 - KHI 5590</option>
+  </select>
+</div>
+  </div>
+
+  <div class="text-end mt-3">
+    <button class="btn btn-primary" onclick="generateGatePass()">Generate</button>
+  </div>
+</div>
+
+    <!-- GENERATED GATE PASS RECORDS -->
+    <div class="card p-4">
+      <h6 class="fw-semibold mb-3">Generated Gate Pass Records</h6>
+      <table class="table table-bordered align-middle" id="gatePassTable">
+        <thead>
+  <tr>
+    <th>#</th>
+    <th>Area Name</th>
+    <th>Bottle Count (Base)</th>
+    <th>Extra Bottles</th>
+    <th>Sales Person</th>
+    <th>Truck</th>
+    <th>Action</th>
+  </tr>
+</thead>
+
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Dummy bottle counts per area
+    const dummyBottleCounts = {
+  Gulshan: 120,
+  Johar: 95,
+  DHA: 150,
+  Clifton: 110
+};
+
+const gatePassRecords = [];
+
+// ✅ Set Dummy Bottle Count on Area Selection
+function setDummyBottleCount() {
+  const area = document.getElementById("areaSelect").value;
+  const bottleInput = document.getElementById("baseBottleCount");
+  if (area && dummyBottleCounts[area] !== undefined) {
+    bottleInput.value = dummyBottleCounts[area];
+  } else {
+    bottleInput.value = "";
+  }
+}
+
+// ✅ Generate and Save Gate Pass
+function generateGatePass() {
+  const area = document.getElementById("areaSelect").value;
+  const base = parseInt(document.getElementById("baseBottleCount").value) || 0;
+  const extra = parseInt(document.getElementById("extraBottles").value) || 0;
+  const salesPerson = document.getElementById("salesPerson").value;
+  const truck = document.getElementById("truckSelect").value;
+
+  if (!area) return alert("⚠️ Please select an Area.");
+  if (!salesPerson) return alert("⚠️ Please select a Sales Person.");
+  if (!truck) return alert("⚠️ Please select a Truck.");
+
+  const record = {
+    area,
+    base,
+    extra,
+    salesPerson,
+    truck
+  };
+
+  gatePassRecords.push(record);
+  updateGatePassTable();
+
+  alert(`✅ Gate Pass Generated for ${area}\nTruck: ${truck}\nTotal Bottles: ${base + extra}`);
+
+  // Reset inputs
+  document.getElementById("extraBottles").value = "";
+  document.getElementById("salesPerson").value = "";
+  document.getElementById("truckSelect").value = "";
+}
+
+// ✅ Update Records Table
+function updateGatePassTable() {
+  const tbody = document.querySelector("#gatePassTable tbody");
+  tbody.innerHTML = "";
+  gatePassRecords.forEach((rec, i) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${rec.area}</td>
+        <td>${rec.base}</td>
+        <td>${rec.extra}</td>
+        <td>${rec.salesPerson}</td>
+        <td>${rec.truck}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteRecord(${i})">Delete</button></td>
+      </tr>`;
+  });
+}
+
+// ✅ Delete Record
+function deleteRecord(index) {
+  if (confirm("Are you sure you want to delete this record?")) {
+    gatePassRecords.splice(index, 1);
+    updateGatePassTable();
+  }
+}
+
+// ✅ Print Summary
+function printGatePass() {
+  if (gatePassRecords.length === 0) {
+    alert("⚠️ No gate pass records to print.");
+    return;
+  }
+
+  const date = new Date().toLocaleDateString();
+  let rows = gatePassRecords.map(
+    (r, i) =>
+      `<tr>
+        <td>${i + 1}</td>
+        <td>${r.area}</td>
+        <td>${r.base}</td>
+        <td>${r.extra}</td>
+        <td>${r.salesPerson}</td>
+        <td>${r.truck}</td>
+      </tr>`
+  ).join("");
+
+  const w = window.open("", "", "height=900,width=1200");
+  w.document.write(`
+    <html><head><title>Gate Pass Summary</title>
+    <style>
+      body { font-family: Arial; margin: 40px; }
+      h2 { color: #2196f3; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+      th { background-color: #f1f5ff; }
+    </style>
+
+    
+    </head>
+    
+    
+    
+    
+    <body>
+      <h2>Wasooli AAB – Gate Pass Summary</h2>
+      <p><strong>Date:</strong> ${date}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Area</th>
+            <th>Bottle Count</th>
+            <th>Extra Bottles</th>
+            <th>Sales Person</th>
+            <th>Truck</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </body>
+    
+    
+    
+    </html>`);
+  w.document.close();
+  w.focus();
+}

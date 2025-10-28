@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Font Awesome for Sidebar Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Production - Wasooli AAB</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="js/sidebar.js"></script>
+
+  <style>
+    body {
+      background-color: #f3f8ff;
+      font-family: "Poppins", sans-serif;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #2196f3;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: white;
+      overflow-y: auto;
+    }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar ul li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+    }
+    .main-content { margin-left: 260px; padding: 20px; }
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .btn-primary {
+      background-color: #2196f3;
+      border: none;
+      border-radius: 8px;
+    }
+    .btn-primary:hover { background-color: #1976d2; }
+    .summary-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+      text-align: center;
+    }
+    .summary-card h4 { color: #2196f3; font-weight: 600; }
+    table th { background-color: #f1f5ff; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="fw-semibold">Production</h5>
+        <p class="text-muted mb-0">Master > Production</p>
+      </div>
+      <button class="btn btn-primary" onclick="printReport()">🖨️ Print Report</button>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="card p-3 mb-3">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Select Area</label>
+          <select id="areaSelect" class="form-select" onchange="updateBottleCount()">
+            <option value="">Select Area</option>
+            <option value="Gulshan">Gulshan</option>
+            <option value="Johar">Johar</option>
+            <option value="DHA">DHA</option>
+            <option value="Clifton">Clifton</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Bottle Count</label>
+          <input type="number" id="bottleCount" class="form-control" readonly placeholder="Auto count..." />
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Add Extra Bottles</label>
+          <input type="number" id="extraBottles" class="form-control" placeholder="Enter extra bottles" />
+        </div>
+
+        <div class="col-md-3 text-end">
+          <button class="btn btn-primary w-100 mt-4" onclick="saveProduction()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="row g-3 mb-3 text-center">
+      <div class="col-md-12">
+        <div class="summary-card">
+          <h4>Tomorrow Production</h4>
+          <p class="display-6" id="todayCount">0</p>
+        </div>
+      </div>
+  
+    </div>
+
+    <!-- SAVED RECORDS -->
+    <div class="card p-3">
+      <h6 class="fw-semibold mb-3">Production Records</h6>
+      <table class="table table-bordered align-middle" id="recordsTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Area</th>
+            <th>Bottle Count</th>
+            <th>Extra Bottles</th>
+            <th>Total Bottles</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- JS FILE LINKS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/production.js"></script>
+</body>
+</html>
